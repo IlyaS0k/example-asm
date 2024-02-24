@@ -1,21 +1,27 @@
 package ru.ilyasok.asm;
 
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+
+import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
-    private static final String handlerFieldName = "handler$";
+
+    private static final String handlerFieldName = "_handler$";
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
+    private final Class<?> handledExceptionClass;
+    private final Class<?> handlerClass;
+    private final Method handlerMethod;
     private final String className;
     private final String methodName;
+    private int lambdaMaxIndex = 0;
 
-
+    @SuppressWarnings("unchecked")
     public ExceptionMonitoringClassVisitor(int api,
                                            ClassVisitor cv,
                                            ITryCatchHandler<EXCEPTION_TYPE> handler,
@@ -25,8 +31,12 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         this.handler = handler;
         this.methodName = methodName;
         this.className = className;
+        this.handledExceptionClass = (Class<EXCEPTION_TYPE>)
+                ((ParameterizedType) this.getClass().getGenericSuperclass())
+                .getActualTypeArguments()[0];
+        this.handlerClass = handler.getClass();
+        this.handlerMethod = handler.getClass().getMethods()[0];
     }
-
 
 
     @Override
@@ -35,14 +45,18 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                                      String desc,
                                      String signature,
                                      String[] exceptions) {
+        if (name.startsWith("lambda$new$") && ((access & ACC_SYNTHETIC) != 0) ) {
+            lambdaMaxIndex++;
+        }
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
         if (mv != null && name.equals(methodName)) {
-            return new ExceptionMonitoringMethodVisitor<>(
+            return new ExceptionMonitoringHandledMethodVisitor<>(
                     api,
                     mv,
                     handler,
-                    className,
-                    methodName
+                    handlerClass,
+                    handlerFieldName,
+                    className
             );
         }
 
@@ -51,8 +65,9 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                     api,
                     mv,
                     handler,
-                    className,
-                    methodName
+                    handledExceptionClass,
+                    handlerFieldName,
+                    className
             );
         }
         return mv;
@@ -60,14 +75,15 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
 
     @Override
     public void visitEnd() {
-        FieldVisitor fv = cv.visitField(
-                ACC_PRIVATE | ACC_FINAL,
-                handlerFieldName,
-                Type.getDescriptor(handler.getClass()),
+        MethodVisitor mv = cv.visitMethod(
+                ACC_PRIVATE | ACC_FINAL | ACC_SYNTHETIC,
+                "lambda$new$" + lambdaMaxIndex,
+                Type.getMethodDescriptor(handlerMethod),
                 null,
-                null);
-        if (fv != null) {
-            fv.visitEnd();
+                null
+                );
+        if (mv != null) {
+            mv.visitEnd();
         }
         cv.visitEnd();
     }

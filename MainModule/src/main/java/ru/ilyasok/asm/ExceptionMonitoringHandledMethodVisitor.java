@@ -7,33 +7,41 @@ import org.objectweb.asm.Type;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ExceptionMonitoringMethodVisitor<EXCEPTION_TYPE extends Throwable>
+public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
         extends MethodVisitor {
-    private static final String handlerFieldName = "handler$";
+
+    private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
+    private final Class<?> handledExceptionClass;
+    private final Class<?> handlerClass;
     private final String className;
-    private final String methodName;
-    protected ExceptionMonitoringMethodVisitor(int api,
-                                                    MethodVisitor mv,
-                                                    ITryCatchHandler<EXCEPTION_TYPE> handler,
-                                                    String className,
-                                                    String methodName
+
+
+    protected ExceptionMonitoringHandledMethodVisitor(int api,
+                                                      MethodVisitor mv,
+                                                      ITryCatchHandler<EXCEPTION_TYPE> handler,
+                                                      Class<?> handledExceptionClass,
+                                                      String handlerFieldName,
+                                                      String className
     ) {
         super(api, mv);
         this.handler = handler;
         this.className = className;
-        this.methodName = methodName;
+        this.handledExceptionClass = handledExceptionClass;
+        this.handlerClass = handledExceptionClass;
+        this.handlerFieldName = handlerFieldName;
 
     }
+
     private final Label TRY_START = new Label();
     private final Label TRY_END = new Label();
-    private final Label CATCH_START = new Label();
+    private final Label HANDLER = new Label();
 
     @Override
     public void visitCode() {
 
         String handledExceptionType = Type.getInternalName(RuntimeException.class);
-        mv.visitTryCatchBlock(TRY_START, TRY_END, CATCH_START, handledExceptionType);
+        mv.visitTryCatchBlock(TRY_START, TRY_END, HANDLER, handledExceptionType);
         mv.visitLabel(TRY_START);
         mv.visitCode();
     }
@@ -43,7 +51,7 @@ public class ExceptionMonitoringMethodVisitor<EXCEPTION_TYPE extends Throwable>
     public void visitMaxs(int maxStack, int maxLocals) {
 
         mv.visitLabel(TRY_END);
-        mv.visitLabel(CATCH_START);
+        mv.visitLabel(HANDLER);
         mv.visitInsn(DUP);
         mv.visitFieldInsn(
                 GETSTATIC,
@@ -65,9 +73,9 @@ public class ExceptionMonitoringMethodVisitor<EXCEPTION_TYPE extends Throwable>
 //                false);
         mv.visitMethodInsn(
                 INVOKEINTERFACE,
-                Type.getDescriptor(handler.getClass()),
+                Type.getDescriptor(handlerClass),
                 "handle",
-                "(Ljava/lang/RuntimeException;)V",
+                Type.getDescriptor(handledExceptionClass),
                 true);
         mv.visitInsn(ATHROW);
         mv.visitMaxs(maxStack, maxLocals);

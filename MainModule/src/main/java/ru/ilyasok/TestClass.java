@@ -3,10 +3,17 @@ package ru.ilyasok;
 import ru.ilyasok.asm.ITryCatchHandler;
 
 public class TestClass {
-    private ITryCatchHandler<RuntimeException> handler ;
+
+    private ITryCatchHandler<RuntimeException> handler = (runtimeException) -> {
+        System.out.println(runtimeException.getMessage());};
+
+
+    public static void main(String[] args) {
+
+    }
 
     public void TestMethod() {
-        handler = Throwable::printStackTrace;
+
         try {
             throw new RuntimeException();
         }

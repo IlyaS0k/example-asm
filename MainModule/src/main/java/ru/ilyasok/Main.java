@@ -1,14 +1,13 @@
 package ru.ilyasok;
 
-import org.objectweb.asm.Type;
-import ru.ilyasok.asm.ITryCatchHandler;
+import org.objectweb.asm.util.ASMifier;
+
+import java.io.IOException;
 
 public class Main {
 
-    public static void main(String[] args) {
-        System.out.println(Type.getDescriptor(ITryCatchHandler.class));
+    public static void main(String[] args) throws IOException {
+        ASMifier.main(new String[] { "ru.ilyasok.TestClass" });
     }
-
-
 
 }

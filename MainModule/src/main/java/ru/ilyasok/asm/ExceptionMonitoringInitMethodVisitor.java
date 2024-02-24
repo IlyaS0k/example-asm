@@ -3,28 +3,30 @@ package ru.ilyasok.asm;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-
 import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwable>
         extends MethodVisitor {
 
-    private final String handlerFieldName = "handler$";
+    private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
+    private final Class<?> handledExceptionClass;
     private final String className;
-    private final String methodName;
+
+
     protected ExceptionMonitoringInitMethodVisitor(int api,
                                                    MethodVisitor mv,
                                                    ITryCatchHandler<EXCEPTION_TYPE> handler,
-                                                   String className,
-                                                   String methodName
+                                                   Class<?> handledExceptionClass,
+                                                   String handlerFieldName,
+                                                   String className
 
     ) {
         super(api, mv);
         this.handler = handler;
         this.className = className;
-        this.methodName = methodName;
-
+        this.handledExceptionClass = handledExceptionClass;
+        this.handlerFieldName = handlerFieldName;
     }
 
     @Override
@@ -33,7 +35,7 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
         mv.visitVarInsn(ALOAD, 0);
         mv.visitMethodInsn(
                 INVOKESTATIC,
-                Type.getInternalName(handler.getClass()),
+                Type.getInternalName(handledExceptionClass),
                 "getInstance",
                 "()L;",
                 false
@@ -42,7 +44,7 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
                 PUTFIELD,
                 className,
                 handlerFieldName,
-                Type.getDescriptor(handler.getClass())
+                Type.getDescriptor(handledExceptionClass)
         );
     }
 
