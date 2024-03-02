@@ -12,7 +12,9 @@ import static org.objectweb.asm.Opcodes.*;
 public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
 
-    private static final String handlerFieldName = "_handler$";
+    private static final String initMethodName = "<init>";
+    private static final String handlerFieldName = "handler$excptnmonitor$";
+    private static final String lambdaSyntheticMethodNamePrefix = "lambda$excptnmonitor$";
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final Class<?> handledExceptionClass;
     private final Class<?> handlerClass;
@@ -45,7 +47,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                                      String desc,
                                      String signature,
                                      String[] exceptions) {
-        if (name.startsWith("lambda$new$") && ((access & ACC_SYNTHETIC) != 0) ) {
+        if (name.startsWith(lambdaSyntheticMethodNamePrefix) && ((access & ACC_SYNTHETIC) != 0) ) {
             lambdaMaxIndex++;
         }
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
@@ -60,7 +62,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
             );
         }
 
-        if (mv != null && "<init>".equals(name)) {
+        if (mv != null && initMethodName.equals(name)) {
             return new ExceptionMonitoringInitMethodVisitor<>(
                     api,
                     mv,
@@ -77,7 +79,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
     public void visitEnd() {
         MethodVisitor mv = cv.visitMethod(
                 ACC_PRIVATE | ACC_FINAL | ACC_SYNTHETIC,
-                "lambda$new$" + lambdaMaxIndex,
+                lambdaSyntheticMethodNamePrefix + lambdaMaxIndex,
                 Type.getMethodDescriptor(handlerMethod),
                 null,
                 null

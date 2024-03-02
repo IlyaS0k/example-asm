@@ -1,10 +1,11 @@
 package ru.ilyasok;
 
 public class RunTimeLoadModule implements IRunTimeLoadModule {
+    public MyClass myClass = new MyClass();
 
     @Override
     public void invoke() {
-        throw new RuntimeException();
+        System.out.println(myClass.xiao);
     }
 
 }
