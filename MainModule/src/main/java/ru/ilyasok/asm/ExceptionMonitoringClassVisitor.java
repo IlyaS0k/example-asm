@@ -6,6 +6,7 @@ import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.util.Arrays;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -37,7 +38,9 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                 ((ParameterizedType) this.getClass().getGenericSuperclass())
                 .getActualTypeArguments()[0];
         this.handlerClass = handler.getClass();
-        this.handlerMethod = handler.getClass().getMethods()[0];
+        this.handlerMethod = Arrays.stream(handler.getClass().getMethods())
+                .filter(m -> m.getName().equals(methodName))
+                .findFirst().orElseThrow();
     }
 
 
