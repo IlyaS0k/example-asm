@@ -12,8 +12,8 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
 
     private static final String initMethodName = "<init>";
-    private static final String handlerFieldName = "handler$excptnmonitor$";
-    private static final String lambdaMethodNamePrefix = "lambda$excptnmonitor$";
+    private static final String handlerFieldName = "handler$exception$monitor$";
+    private static final String lambdaMethodNamePrefix = "lambda$exception$monitor$";
     private static final String lookupInternalName = "java/lang/invoke/MethodHandles$Lookup";
     private static final String lookupOuterName = "java/lang/invoke/MethodHandles";
     private static final String lookupInnerName = "Lookup";

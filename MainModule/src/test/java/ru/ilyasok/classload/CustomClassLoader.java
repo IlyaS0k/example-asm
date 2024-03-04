@@ -2,11 +2,22 @@ package ru.ilyasok.classload;
 
 
 
+import ru.ilyasok.asm.ByteCodeTryCatchWrapper;
+import ru.ilyasok.asm.IBytecodeTryCatchWrapper;
+import ru.ilyasok.asm.ITryCatchHandler;
+import ru.ilyasok.bytecode.Bytecode;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class CustomClassLoader extends ClassLoader {
+
+    private final IBytecodeTryCatchWrapper wrapper;
+    public CustomClassLoader(IBytecodeTryCatchWrapper wrapper) {
+        super();
+        this.wrapper = wrapper;
+    }
     public Class<?> findClass(String className) {
         System.out.println(className);
         String name = className.replace(".", "\\");
@@ -23,4 +34,5 @@ public class CustomClassLoader extends ClassLoader {
         }
         return defineClass(className, array, 0, array.length);
     }
+
 }

@@ -1,6 +1,5 @@
 import org.junit.BeforeClass;
 import org.junit.Test;
-import ru.ilyasok.IRunTimeLoadModule;
 import ru.ilyasok.MyClass;
 import ru.ilyasok.classload.CustomClassLoader;
 
