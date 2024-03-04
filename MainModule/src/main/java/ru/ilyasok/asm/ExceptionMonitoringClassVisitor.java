@@ -2,13 +2,11 @@ package ru.ilyasok.asm;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
-
-import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
@@ -16,6 +14,10 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
     private static final String initMethodName = "<init>";
     private static final String handlerFieldName = "handler$excptnmonitor$";
     private static final String lambdaMethodNamePrefix = "lambda$excptnmonitor$";
+    private static final String lookupInternalName = "java/lang/invoke/MethodHandles$Lookup";
+    private static final String lookupOuterName = "java/lang/invoke/MethodHandles";
+    private static final String lookupInnerName = "Lookup";
+    int lookupAccessMask = Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC;
     private final String lambdaMethodName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final Class<?> handledExceptionClass;
@@ -24,6 +26,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
     private final String className;
     private final String methodName;
     private final String methodDescriptor;
+    private boolean containsLookup = false;
 
     @SuppressWarnings("unchecked")
     public ExceptionMonitoringClassVisitor(int api,
@@ -48,6 +51,19 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         this.lambdaMethodName = lambdaMethodNamePrefix + methodName + "$" + descriptorAsStr;
     }
 
+    @Override
+    public void visitInnerClass(String name,
+                                String outerName,
+                                String innerName,
+                                int access) {
+          if (name.equals(lookupInternalName) &&
+                  outerName.equals(lookupOuterName) &&
+                  innerName.equals(lookupInnerName) &&
+                  access == lookupAccessMask
+          ) {
+              containsLookup = true;
+          }
+    }
 
     @Override
     public MethodVisitor visitMethod(int access,
@@ -56,10 +72,9 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                                      String signature,
                                      String[] exceptions) {
         MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
-        if (mv != null && (
-                                (methodDescriptor == null && name.equals(methodName)) ||
-                                        (name.equals(methodName) && desc.equals(methodDescriptor))
-                        )
+        if (mv != null &&
+                ((methodDescriptor == null && name.equals(methodName)) ||
+                        (name.equals(methodName) && desc.equals(methodDescriptor)))
         ) {
             return new ExceptionMonitoringHandledMethodVisitor<>(
                     api,
@@ -82,9 +97,20 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                     handlerMethod,
                     methodName,
                     methodDescriptor,
-                    lambdaMethodName
-            );
+                    lambdaMethodName);
         }
         return mv;
+    }
+
+    @Override
+    public void visitEnd() {
+        if (!containsLookup) {
+            cv.visitInnerClass(
+                    lookupInternalName,
+                    lookupOuterName,
+                    lookupInnerName,
+                    lookupAccessMask
+            );
+        }
     }
 }

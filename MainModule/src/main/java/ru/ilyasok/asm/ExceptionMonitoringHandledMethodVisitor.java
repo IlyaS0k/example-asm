@@ -11,8 +11,6 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
         extends MethodVisitor {
-
-    private static final String lambdaSyntheticMethodNamePrefix = "lambda$excptnmonitor$";
     private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final Class<?> handledExceptionClass;

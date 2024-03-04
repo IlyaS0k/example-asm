@@ -1,5 +1,9 @@
 package ru.ilyasok;
 
+import ru.ilyasok.asm.ITryCatchHandler;
+
 public class MyClass {
-    public String xiao = "PUPA";
+    public static ITryCatchHandler<RuntimeException> HANDLER = (runtimeException) -> {
+        System.out.println("xiao");
+    };
 }

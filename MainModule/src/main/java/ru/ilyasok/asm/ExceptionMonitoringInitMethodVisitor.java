@@ -49,7 +49,7 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
         mv.visitVarInsn(ALOAD, 0);
         mv.visitInvokeDynamicInsn(
                 handlerMethod.getName(),
-                "(Lru/ilyasok/TestClass;)Lru/ilyasok/asm/ITryCatchHandler;",
+                Type.getMethodDescriptor(handlerMethod),
                 new Handle(
                         Opcodes.H_INVOKESTATIC,
                         Type.getInternalName(LambdaMetafactory.class),
@@ -63,23 +63,23 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
                                 ")Ljava/lang/invoke/CallSite;",
                         false
                 ),
-                new Object[]{
+                new Object[] {
                         Type.getType("(Ljava/lang/Throwable;)V"),
                         new Handle(
                                 Opcodes.H_INVOKESPECIAL,
-                                className,
+                                Type.getInternalName(this.getClass()),
                                 lambdaMethodName,
                                 "(" + Type.getType(handledExceptionClass) + ";)V",
                                 false
                         ),
-                        Type.getType("(" + Type.getType(handledExceptionClass) + ";)V")});
+                        Type.getType("(" + Type.getType(handledExceptionClass) + ";)V")
+                }
+        );
         mv.visitFieldInsn(
                 PUTFIELD,
                 className,
-                handlerMethod.getName(),
-                Type.getMethodDescriptor(handlerMethod)
+                handlerFieldName,
+                Type.getDescriptor(ITryCatchHandler.class)
         );
     }
-
-
 }

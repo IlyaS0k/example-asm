@@ -22,7 +22,7 @@ public class ASMTest {
         MyClass mc = new MyClass();
         System.out.println(mc.getClass().getClassLoader());
         CustomClassLoader customClassLoader = new CustomClassLoader();
-        Class<?> clazz = customClassLoader.findClass("ru.ilyasok.RunTimeLoadModule", true);
+        Class<?> clazz = customClassLoader.findClass("ru.ilyasok.RunTimeLoadModule");
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
         IRunTimeLoadModule module = (IRunTimeLoadModule) constructor.newInstance();
         module.invoke();
