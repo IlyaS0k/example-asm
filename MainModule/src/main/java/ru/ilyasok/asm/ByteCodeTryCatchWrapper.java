@@ -16,10 +16,18 @@ public class ByteCodeTryCatchWrapper
     public <EXCEPTION_TYPE extends Throwable> Bytecode wrap(Bytecode bytecodeToBeEdit,
                                                ITryCatchHandler<EXCEPTION_TYPE> handler,
                                                String className,
-                                               String methodName) {
+                                               String methodName,
+                                               String methodDescriptor) {
         ClassReader cr = new ClassReader(bytecodeToBeEdit.asBytes());
         ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
-        ClassVisitor cv = new ExceptionMonitoringClassVisitor<>(API, cw, handler, className, methodName);
+        ClassVisitor cv = new ExceptionMonitoringClassVisitor<>(
+                API,
+                cw,
+                handler,
+                className,
+                methodName,
+                methodDescriptor
+        );
         cr.accept(cv, ClassReader.SKIP_FRAMES);
         return new Bytecode(cw.toByteArray());
     }

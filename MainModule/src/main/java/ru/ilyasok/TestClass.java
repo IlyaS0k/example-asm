@@ -1,5 +1,6 @@
 package ru.ilyasok;
 
+import org.objectweb.asm.Type;
 import ru.ilyasok.asm.ITryCatchHandler;
 
 public class TestClass {
@@ -7,19 +8,19 @@ public class TestClass {
     private int xiao = 10;
 
     private ITryCatchHandler<RuntimeException> handler = (runtimeException) -> {
-        System.out.println(runtimeException.getMessage());};
+        System.out.println(xiao);
+    };
 
 
     public static void main(String[] args) {
-
+        Type.getType(RuntimeException.class);
+                System.out.println(        Type.getType(RuntimeException.class));
     }
 
     public void TestMethod() {
-
         try {
-            throw new RuntimeException();
-        }
-        catch (RuntimeException e) {
+            System.out.println("xiao");
+        } catch (RuntimeException e) {
             handler.handle(e);
         }
     }

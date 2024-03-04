@@ -5,16 +5,20 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import java.lang.reflect.Method;
+
 import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
         extends MethodVisitor {
 
+    private static final String lambdaSyntheticMethodNamePrefix = "lambda$excptnmonitor$";
     private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final Class<?> handledExceptionClass;
     private final Class<?> handlerClass;
     private final String className;
+    private final Method handlerMethod;
 
 
     protected ExceptionMonitoringHandledMethodVisitor(int api,
@@ -22,15 +26,15 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
                                                       ITryCatchHandler<EXCEPTION_TYPE> handler,
                                                       Class<?> handledExceptionClass,
                                                       String handlerFieldName,
-                                                      String className
-    ) {
+                                                      String className,
+                                                      Method handlerMethod) {
         super(api, mv);
         this.handler = handler;
         this.className = className;
         this.handledExceptionClass = handledExceptionClass;
         this.handlerClass = handledExceptionClass;
         this.handlerFieldName = handlerFieldName;
-
+        this.handlerMethod = handlerMethod;
     }
 
     private final Label TRY_START = new Label();
@@ -54,27 +58,15 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
         mv.visitLabel(HANDLER);
         mv.visitInsn(DUP);
         mv.visitFieldInsn(
-                GETSTATIC,
+                GETFIELD,
                 className,
                 handlerFieldName,
-                Type.getDescriptor(handler.getClass()));
-//        mv.visitInsn(SWAP);
-//        mv.visitMethodInsn(
-//                INVOKEVIRTUAL,
-//                Type.getInternalName(Exception.class),
-//                "getStackTrace",
-//                "()[Ljava/lang/StackTraceElement;",
-//                false);
-//        mv.visitMethodInsn(
-//                INVOKESTATIC,
-//                Type.getInternalName(Arrays.class),
-//                "toString",
-//                "([Ljava/lang/Object;)Ljava/lang/String;",
-//                false);
+                Type.getDescriptor(ITryCatchHandler.class)
+        );
         mv.visitMethodInsn(
                 INVOKEINTERFACE,
                 Type.getDescriptor(handlerClass),
-                "handle",
+                handlerMethod.getName(),
                 Type.getDescriptor(handledExceptionClass),
                 true);
         mv.visitInsn(ATHROW);
