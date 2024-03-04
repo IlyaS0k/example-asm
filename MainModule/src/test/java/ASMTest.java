@@ -1,7 +1,9 @@
 import org.junit.BeforeClass;
 import org.junit.Test;
+import ru.ilyasok.IDivisor;
 import ru.ilyasok.MyClass;
-import ru.ilyasok.classload.CustomClassLoader;
+import ru.ilyasok.asm.ByteCodeTryCatchWrapper;
+import ru.ilyasok.classload.EditBytecodeClassLoader;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -20,11 +22,20 @@ public class ASMTest {
     public void MyTest() throws IOException, InvocationTargetException, InstantiationException, IllegalAccessException {
         MyClass mc = new MyClass();
         System.out.println(mc.getClass().getClassLoader());
-        CustomClassLoader customClassLoader = new CustomClassLoader();
-        Class<?> clazz = customClassLoader.findClass("ru.ilyasok.RunTimeLoadModule");
+        EditBytecodeClassLoader loader = new EditBytecodeClassLoader(new ByteCodeTryCatchWrapper());
+        Class<?> clazz = loader.editClass(
+                "ru.ilyasok.Divisor",
+                (RuntimeException r) -> {
+                    System.out.println("Поймно исключение! :"  + r.getClass());
+                },
+                RuntimeException.class,
+                "divide",
+                null
+
+        );
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-        IRunTimeLoadModule module = (IRunTimeLoadModule) constructor.newInstance();
-        module.invoke();
+        IDivisor divisor = (IDivisor) constructor.newInstance();
+        divisor.divide(5, 1);
     }
 
 

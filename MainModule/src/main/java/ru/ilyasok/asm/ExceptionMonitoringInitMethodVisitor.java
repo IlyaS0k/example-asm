@@ -16,8 +16,10 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
     private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final Class<?> handledExceptionClass;
-    private final String className;
-    private final Method handlerMethod;
+    private final String ownerClassName;
+    private final String handlerMethodName;
+
+    private final String handlerFieldDescriptor;
     private final String methodName;
     private final String methodDescriptor;
     private final String lambdaMethodName;
@@ -27,17 +29,19 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
                                                    ITryCatchHandler<EXCEPTION_TYPE> handler,
                                                    Class<?> handledExceptionClass,
                                                    String handlerFieldName,
-                                                   String className,
-                                                   Method handlerMethod,
+                                                   String handlerFieldDescriptor,
+                                                   String ownerClassName,
+                                                   String handlerMethodName,
                                                    String methodName,
                                                    String methodDescriptor,
                                                    String lambdaMethodName) {
         super(api, mv);
         this.handler = handler;
-        this.className = className;
+        this.ownerClassName = ownerClassName;
         this.handledExceptionClass = handledExceptionClass;
         this.handlerFieldName = handlerFieldName;
-        this.handlerMethod = handlerMethod;
+        this.handlerFieldDescriptor = handlerFieldDescriptor;
+        this.handlerMethodName = handlerMethodName;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor == null ? "" : methodDescriptor;
         this.lambdaMethodName = lambdaMethodName;
@@ -46,10 +50,10 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
     @Override
     public void visitCode() {
         mv.visitCode();
-        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ALOAD,0);
         mv.visitInvokeDynamicInsn(
-                handlerMethod.getName(),
-                Type.getMethodDescriptor(handlerMethod),
+                handlerMethodName,
+                "()" + Type.getDescriptor(ITryCatchHandler.class),
                 new Handle(
                         Opcodes.H_INVOKESTATIC,
                         Type.getInternalName(LambdaMetafactory.class),
@@ -63,23 +67,20 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
                                 ")Ljava/lang/invoke/CallSite;",
                         false
                 ),
-                new Object[] {
-                        Type.getType("(Ljava/lang/Throwable;)V"),
-                        new Handle(
-                                Opcodes.H_INVOKESPECIAL,
-                                Type.getInternalName(this.getClass()),
-                                lambdaMethodName,
-                                "(" + Type.getType(handledExceptionClass) + ";)V",
-                                false
-                        ),
-                        Type.getType("(" + Type.getType(handledExceptionClass) + ";)V")
-                }
-        );
+                Type.getType("(Ljava/lang/Throwable;)V"),
+                new Handle(
+                        Opcodes.H_INVOKESPECIAL,
+                        Type.getInternalName(this.getClass()),
+                        "lambda$static$0",
+                        "(" + Type.getType(handledExceptionClass) + ")V",
+                        false
+                ),
+                Type.getType("(" + Type.getType(handledExceptionClass) + ")V"));
         mv.visitFieldInsn(
                 PUTFIELD,
-                className,
+                ownerClassName,
                 handlerFieldName,
-                Type.getDescriptor(ITryCatchHandler.class)
+                handlerFieldDescriptor
         );
     }
 }

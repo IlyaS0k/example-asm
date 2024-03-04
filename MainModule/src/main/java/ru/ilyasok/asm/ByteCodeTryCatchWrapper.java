@@ -15,6 +15,7 @@ public class ByteCodeTryCatchWrapper
     @Override
     public <EXCEPTION_TYPE extends Throwable> Bytecode wrap(Bytecode bytecodeToBeEdit,
                                                ITryCatchHandler<EXCEPTION_TYPE> handler,
+                                               Class<EXCEPTION_TYPE> exceptionTypeClass,
                                                String className,
                                                String methodName,
                                                String methodDescriptor) {
@@ -24,6 +25,7 @@ public class ByteCodeTryCatchWrapper
                 API,
                 cw,
                 handler,
+                exceptionTypeClass,
                 className,
                 methodName,
                 methodDescriptor

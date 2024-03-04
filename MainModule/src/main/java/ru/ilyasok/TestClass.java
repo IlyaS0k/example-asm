@@ -3,17 +3,22 @@ package ru.ilyasok;
 import org.objectweb.asm.Type;
 import ru.ilyasok.asm.ITryCatchHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TestClass {
 
-    private int xiao = 10;
+    private List l;
 
-    private static ITryCatchHandler<RuntimeException> handler = (runtimeException) -> {
-        System.out.println("xiao");
+    private  ITryCatchHandler<RuntimeException> handler = (runtimeException) -> {
+        System.out.println(runtimeException.getMessage());
     };
 
 
     public static void main(String[] args) {
-        handler.handle(new RuntimeException());
+        List l = new ArrayList();
+        l.clear();
+
     }
 
 
