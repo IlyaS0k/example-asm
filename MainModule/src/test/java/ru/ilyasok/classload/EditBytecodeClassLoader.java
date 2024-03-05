@@ -34,12 +34,9 @@ public class EditBytecodeClassLoader extends ClassLoader {
         if (loadedClass != null) {
             return loadedClass;
         }
-        String internalName = className.replace(".", "/");
         Bytecode wrappedBytecode = wrapper.wrap(
                 new Bytecode(array),
                 handler,
-                exceptionTypeClass,
-                internalName,
                 methodToBeWrappedName,
                 methodToBeWrappedDescriptor
                 );

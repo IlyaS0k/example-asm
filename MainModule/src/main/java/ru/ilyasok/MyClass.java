@@ -4,10 +4,7 @@ package ru.ilyasok;
 import ru.ilyasok.asm.IBytecodeTryCatchWrapper;
 import ru.ilyasok.asm.ITryCatchHandler;
 
-public class MyClass implements ITryCatchHandler<RuntimeException> {
+public class MyClass {
 
-    @Override
-    public void handle(RuntimeException exception) {
 
-    }
 }

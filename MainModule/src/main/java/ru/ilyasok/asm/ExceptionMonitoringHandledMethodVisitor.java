@@ -5,39 +5,22 @@ import org.objectweb.asm.*;
 import ru.ilyasok.asm.bootstrap.ExceptionMonitoringBoostrap;
 
 import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
-        extends MethodVisitor {
-
-    private final ITryCatchHandler<EXCEPTION_TYPE> handler;
-    private final String handlerClassName;
-    private final String handlerFieldName;
-    private final String ownerClassName;
-    private final String handlerMethodName;
-    private final String handlerFieldDescriptor;
-    private final String handlerMethodDescriptor;
-
-
+public class ExceptionMonitoringHandledMethodVisitor extends MethodVisitor {
+    private final String handleMethodName;
+    private final String handleMethodDescriptor;
     protected ExceptionMonitoringHandledMethodVisitor(int api,
                                                       MethodVisitor mv,
-                                                      ITryCatchHandler<EXCEPTION_TYPE> handler, String handlerClassName,
-                                                      String handlerFieldName,
-                                                      String ownerClassName,
-                                                      String handlerMethodName,
-                                                      String handlerFieldDescriptor,
-                                                      String handlerMethodDescriptor) {
+                                                      String handleMethodName,
+                                                      String handleMethodDescriptor) {
         super(api, mv);
-        this.handler = handler;
-        this.handlerClassName = handlerClassName;
-        this.ownerClassName = ownerClassName;
-        this.handlerFieldName = handlerFieldName;
-        this.handlerMethodName = handlerMethodName;
-        this.handlerFieldDescriptor = handlerFieldDescriptor;
-        this.handlerMethodDescriptor = handlerMethodDescriptor;
+        this.handleMethodName = handleMethodName;
+        this.handleMethodDescriptor = handleMethodDescriptor;
     }
 
     private final Label TRY_START = new Label();
@@ -60,14 +43,13 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
         mv.visitLabel(TRY_END);
         mv.visitLabel(HANDLER);
         mv.visitInsn(DUP);
-        mv.visitInsn(DUP);
         mv.visitInvokeDynamicInsn(
-                handlerMethodName,
-                "(" + Type.getDescriptor(ITryCatchHandler.class) + Type.getDescriptor(Throwable.class) + ")V",
+                handleMethodName,
+                handleMethodDescriptor,
                 new Handle(
                         Opcodes.H_INVOKESTATIC,
                         Type.getInternalName(ExceptionMonitoringBoostrap.class),
-                        "bootstrap",
+                        ExceptionMonitoringBoostrap.BOOTSTRAP_METHOD_NAME,
                         MethodType.methodType(
                                 CallSite.class,
                                 MethodHandles.Lookup.class,

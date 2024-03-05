@@ -7,7 +7,7 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        ASMifier.main(new String[] { "ru.ilyasok.TestClass" });
+        ASMifier.main(new String[] { "ru.ilyasok.TestClass$1" });
     }
 
 }
