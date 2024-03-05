@@ -6,11 +6,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
     private static final String handlerFieldNamePrefix = "handler$exception$monitor$";
     private static final String lambdaMethodNamePrefix = "lambda$exception$monitor$";
-    private static final String lookupInternalName = "java/lang/invoke/MethodHandles$Lookup";
-    private static final String lookupOuterName = "java/lang/invoke/MethodHandles";
-    private static final String lookupInnerName = "Lookup";
     private static final String handlerMethodName = "handle";
-    private static final int lookupAccessMask = Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC;
     private final String lambdaMethodName;
     private final String handlerFieldName;
     private final ITryCatchHandler<EXCEPTION_TYPE> handler;
@@ -22,7 +18,6 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
     private final String handlerFieldSignature;
     private final String handlerFieldDescriptor;
     private final String handlerMethodDescriptor;
-    private boolean containsLookup = false;
 
     public ExceptionMonitoringClassVisitor(int api,
                                            ClassVisitor cv,
@@ -47,19 +42,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         this.handlerMethodDescriptor = "(" + Type.getDescriptor(handledExceptionClass) + ")V";
     }
 
-    @Override
-    public void visitInnerClass(String name,
-                                String outerName,
-                                String innerName,
-                                int access) {
-          if (name.equals(lookupInternalName) &&
-                  outerName.equals(lookupOuterName) &&
-                  innerName.equals(lookupInnerName) &&
-                  access == lookupAccessMask
-          ) {
-              containsLookup = true;
-          }
-    }
+
 
     @Override
     public MethodVisitor visitMethod(int access,
@@ -75,7 +58,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
             return new ExceptionMonitoringHandledMethodVisitor<>(
                     api,
                     mv,
-                    handlerClassName,
+                    handler, handlerClassName,
                     handlerFieldName,
                     ownerClassName,
                     handlerMethodName,
@@ -92,6 +75,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                     handledExceptionClass,
                     handlerFieldName,
                     handlerFieldDescriptor,
+                    handlerMethodDescriptor,
                     ownerClassName,
                     handlerMethodName,
                     wrappedMethodName,
@@ -113,14 +97,6 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         );
         if (fv != null) {
             fv.visitEnd();
-        }
-        if (!containsLookup) {
-            cv.visitInnerClass(
-                    lookupInternalName,
-                    lookupOuterName,
-                    lookupInnerName,
-                    lookupAccessMask
-            );
         }
         cv.visitEnd();
     }

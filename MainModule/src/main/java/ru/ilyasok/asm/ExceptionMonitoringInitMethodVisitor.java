@@ -4,9 +4,11 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import ru.ilyasok.asm.bootstrap.ExceptionMonitoringBoostrap;
 
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.reflect.Method;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -18,8 +20,8 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
     private final Class<?> handledExceptionClass;
     private final String ownerClassName;
     private final String handlerMethodName;
-
     private final String handlerFieldDescriptor;
+    private final String handlerMethodDescriptor;
     private final String methodName;
     private final String methodDescriptor;
     private final String lambdaMethodName;
@@ -30,6 +32,7 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
                                                    Class<?> handledExceptionClass,
                                                    String handlerFieldName,
                                                    String handlerFieldDescriptor,
+                                                   String handlerMethodDescriptor,
                                                    String ownerClassName,
                                                    String handlerMethodName,
                                                    String methodName,
@@ -42,6 +45,7 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
         this.handlerFieldName = handlerFieldName;
         this.handlerFieldDescriptor = handlerFieldDescriptor;
         this.handlerMethodName = handlerMethodName;
+        this.handlerMethodDescriptor = handlerMethodDescriptor;
         this.methodName = methodName;
         this.methodDescriptor = methodDescriptor == null ? "" : methodDescriptor;
         this.lambdaMethodName = lambdaMethodName;
@@ -50,32 +54,18 @@ public class ExceptionMonitoringInitMethodVisitor<EXCEPTION_TYPE extends Throwab
     @Override
     public void visitCode() {
         mv.visitCode();
-        mv.visitVarInsn(ALOAD,0);
-        mv.visitInvokeDynamicInsn(
-                handlerMethodName,
-                "()" + Type.getDescriptor(ITryCatchHandler.class),
-                new Handle(
-                        Opcodes.H_INVOKESTATIC,
-                        Type.getInternalName(LambdaMetafactory.class),
-                        "metafactory",
-                                "(Ljava/lang/invoke/MethodHandles$Lookup;" +
-                                "Ljava/lang/String;" +
-                                "Ljava/lang/invoke/MethodType;" +
-                                "Ljava/lang/invoke/MethodType;" +
-                                "Ljava/lang/invoke/MethodHandle;" +
-                                "Ljava/lang/invoke/MethodType;" +
-                                ")Ljava/lang/invoke/CallSite;",
-                        false
-                ),
-                Type.getType("(Ljava/lang/Throwable;)V"),
-                new Handle(
-                        Opcodes.H_INVOKESPECIAL,
-                        Type.getInternalName(this.getClass()),
-                        "lambda$static$0",
-                        "(" + Type.getType(handledExceptionClass) + ")V",
-                        false
-                ),
-                Type.getType("(" + Type.getType(handledExceptionClass) + ")V"));
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, ownerClassName, "<init>", "()V", false);
+        mv.visitTypeInsn(NEW, Type.getInternalName(handler.getClass()));
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(
+                INVOKESPECIAL,
+                Type.getInternalName(handler.getClass()),
+                "<init>",
+                "()V",
+                false
+        );
         mv.visitFieldInsn(
                 PUTFIELD,
                 ownerClassName,

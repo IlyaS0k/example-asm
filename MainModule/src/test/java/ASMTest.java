@@ -3,6 +3,7 @@ import org.junit.Test;
 import ru.ilyasok.IDivisor;
 import ru.ilyasok.MyClass;
 import ru.ilyasok.asm.ByteCodeTryCatchWrapper;
+import ru.ilyasok.asm.ITryCatchHandler;
 import ru.ilyasok.classload.EditBytecodeClassLoader;
 
 import java.io.IOException;
@@ -25,9 +26,12 @@ public class ASMTest {
         EditBytecodeClassLoader loader = new EditBytecodeClassLoader(new ByteCodeTryCatchWrapper());
         Class<?> clazz = loader.editClass(
                 "ru.ilyasok.Divisor",
-                (RuntimeException r) -> {
-                    System.out.println("Поймно исключение! :"  + r.getClass());
-                },
+                new ITryCatchHandler<>() {
+                    @Override
+                    public void handle(RuntimeException r) {
+                        System.out.println("Поймано исключение! :"  + r.getClass());
+                    }
+                } ,
                 RuntimeException.class,
                 "divide",
                 null
@@ -36,6 +40,7 @@ public class ASMTest {
         Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
         IDivisor divisor = (IDivisor) constructor.newInstance();
         divisor.divide(5, 1);
+        divisor.divide(100, 0);
     }
 
 

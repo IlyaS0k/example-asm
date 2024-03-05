@@ -1,9 +1,13 @@
 package ru.ilyasok;
 
+
+import ru.ilyasok.asm.IBytecodeTryCatchWrapper;
 import ru.ilyasok.asm.ITryCatchHandler;
 
-public class MyClass {
-    public static ITryCatchHandler<RuntimeException> HANDLER = (runtimeException) -> {
-        System.out.println("xiao");
-    };
+public class MyClass implements ITryCatchHandler<RuntimeException> {
+
+    @Override
+    public void handle(RuntimeException exception) {
+
+    }
 }

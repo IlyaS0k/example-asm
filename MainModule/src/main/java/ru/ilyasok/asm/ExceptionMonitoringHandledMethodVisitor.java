@@ -1,15 +1,19 @@
 package ru.ilyasok.asm;
 
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
+import ru.ilyasok.asm.bootstrap.ExceptionMonitoringBoostrap;
+
+import java.lang.invoke.CallSite;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
         extends MethodVisitor {
 
+    private final ITryCatchHandler<EXCEPTION_TYPE> handler;
     private final String handlerClassName;
     private final String handlerFieldName;
     private final String ownerClassName;
@@ -20,13 +24,14 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
 
     protected ExceptionMonitoringHandledMethodVisitor(int api,
                                                       MethodVisitor mv,
-                                                      String handlerClassName,
+                                                      ITryCatchHandler<EXCEPTION_TYPE> handler, String handlerClassName,
                                                       String handlerFieldName,
                                                       String ownerClassName,
                                                       String handlerMethodName,
                                                       String handlerFieldDescriptor,
                                                       String handlerMethodDescriptor) {
         super(api, mv);
+        this.handler = handler;
         this.handlerClassName = handlerClassName;
         this.ownerClassName = ownerClassName;
         this.handlerFieldName = handlerFieldName;
@@ -55,20 +60,21 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
         mv.visitLabel(TRY_END);
         mv.visitLabel(HANDLER);
         mv.visitInsn(DUP);
-        mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(
-                GETFIELD,
-                ownerClassName,
-                handlerFieldName,
-                handlerFieldDescriptor
-        );
-        mv.visitInsn(SWAP);
-        mv.visitMethodInsn(
-                INVOKEINTERFACE,
-                handlerClassName,
+        mv.visitInsn(DUP);
+        mv.visitInvokeDynamicInsn(
                 handlerMethodName,
-                handlerMethodDescriptor,
-                true
+                "(" + Type.getDescriptor(ITryCatchHandler.class) + Type.getDescriptor(Throwable.class) + ")V",
+                new Handle(
+                        Opcodes.H_INVOKESTATIC,
+                        Type.getInternalName(ExceptionMonitoringBoostrap.class),
+                        "bootstrap",
+                        MethodType.methodType(
+                                CallSite.class,
+                                MethodHandles.Lookup.class,
+                                String.class,
+                                MethodType.class
+                        ).toMethodDescriptorString()
+                )
         );
         mv.visitInsn(ATHROW);
         mv.visitMaxs(maxStack, maxLocals);
