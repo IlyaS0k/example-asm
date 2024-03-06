@@ -48,7 +48,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                 ((wrappedMethodDescriptor == null && name.equals(wrappedMethodName)) ||
                         (name.equals(wrappedMethodName) && desc.equals(wrappedMethodDescriptor)))
         ) {
-            return new ExceptionMonitoringHandledMethodVisitor(
+            return new ExceptionMonitoringHandledMethodVisitor<>(
                     api,
                     mv,
                     exceptionClass,

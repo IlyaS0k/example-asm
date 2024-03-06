@@ -22,7 +22,6 @@ public class EditBytecodeClassLoader extends ClassLoader {
             String methodToBeWrappedName,
             String methodToBeWrappedDescriptor
     ) {
-        System.out.println(className);
         String name = className.replace(".", "/");
         byte[] array;
         try {
@@ -44,8 +43,4 @@ public class EditBytecodeClassLoader extends ClassLoader {
         byte[] wrapped = wrappedBytecode.asBytes();
         return defineClass(className, wrapped, 0, wrapped.length);
     }
-
-
-
-
 }
