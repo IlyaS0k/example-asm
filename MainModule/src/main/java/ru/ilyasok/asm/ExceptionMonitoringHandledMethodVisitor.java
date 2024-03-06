@@ -11,16 +11,21 @@ import java.lang.invoke.MethodType;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ExceptionMonitoringHandledMethodVisitor extends MethodVisitor {
+public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Throwable>
+        extends MethodVisitor {
+
+    Class<EXCEPTION_TYPE> exceptionClass;
     private final String handleMethodName;
     private final String handleMethodDescriptor;
     protected ExceptionMonitoringHandledMethodVisitor(int api,
                                                       MethodVisitor mv,
+                                                      Class<EXCEPTION_TYPE> exceptionClass,
                                                       String handleMethodName,
                                                       String handleMethodDescriptor) {
         super(api, mv);
         this.handleMethodName = handleMethodName;
         this.handleMethodDescriptor = handleMethodDescriptor;
+        this.exceptionClass = exceptionClass;
     }
 
     private final Label TRY_START = new Label();
@@ -30,7 +35,7 @@ public class ExceptionMonitoringHandledMethodVisitor extends MethodVisitor {
     @Override
     public void visitCode() {
 
-        String handledExceptionType = Type.getInternalName(RuntimeException.class);
+        String handledExceptionType = Type.getInternalName(exceptionClass);
         mv.visitTryCatchBlock(TRY_START, TRY_END, HANDLER, handledExceptionType);
         mv.visitLabel(TRY_START);
         mv.visitCode();

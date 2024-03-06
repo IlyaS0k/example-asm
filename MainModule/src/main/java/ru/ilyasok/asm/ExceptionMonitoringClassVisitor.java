@@ -10,6 +10,7 @@ import java.lang.invoke.MethodType;
 public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
     private static final String handleMethodName = "handle";
+    private final Class<EXCEPTION_TYPE> exceptionClass;
     private final String wrappedMethodName;
     private final String wrappedMethodDescriptor;
     private final String handleMethodDescriptor;
@@ -17,10 +18,12 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
 
     public ExceptionMonitoringClassVisitor(int api,
                                            ClassVisitor cv,
+                                           Class<EXCEPTION_TYPE> exceptionClass,
                                            ITryCatchHandler<EXCEPTION_TYPE> handler,
                                            String wrappedMethodName,
                                            String wrappedMethodDescriptor) {
         super(api, cv);
+        this.exceptionClass = exceptionClass;
         this.wrappedMethodName = wrappedMethodName;
         this.wrappedMethodDescriptor = wrappedMethodDescriptor;
         this.handleMethodDescriptor = "("+ Type.getDescriptor(Throwable.class) + ")V";
@@ -48,6 +51,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
             return new ExceptionMonitoringHandledMethodVisitor(
                     api,
                     mv,
+                    exceptionClass,
                     handleMethodName,
                     handleMethodDescriptor
             );

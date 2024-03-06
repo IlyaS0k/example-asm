@@ -26,8 +26,8 @@ public class ASMTest {
         EditBytecodeClassLoader loader = new EditBytecodeClassLoader(new ByteCodeTryCatchWrapper());
         Class<?> clazz = loader.editClass(
                 "ru.ilyasok.Divisor",
+                ArithmeticException.class,
                 (r) ->  { System.out.println("Поймано исключение! :"  + r.getClass());},
-                RuntimeException.class,
                 "divide",
                 null
 

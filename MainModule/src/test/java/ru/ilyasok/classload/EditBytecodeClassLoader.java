@@ -17,16 +17,16 @@ public class EditBytecodeClassLoader extends ClassLoader {
     }
     public<EXCEPTION_TYPE extends Throwable> Class<?> editClass(
             String className,
+            Class<EXCEPTION_TYPE> exceptionClass,
             ITryCatchHandler<EXCEPTION_TYPE> handler,
-            Class<EXCEPTION_TYPE> exceptionTypeClass,
             String methodToBeWrappedName,
             String methodToBeWrappedDescriptor
     ) {
         System.out.println(className);
-        String name = className.replace(".", "\\");
+        String name = className.replace(".", "/");
         byte[] array;
         try {
-            array = Files.readAllBytes(Paths.get("C:\\Users\\xiao\\IdeaProjects\\exampleASM\\ModuleImpl\\target\\classes\\" + name + ".class"));
+            array = Files.readAllBytes(Paths.get("/home/ilyasokolov/projects/exampleASM/ModuleImpl/target/classes/" + name + ".class"));
         } catch (IOException e) {
             throw new RuntimeException();
         }
@@ -36,6 +36,7 @@ public class EditBytecodeClassLoader extends ClassLoader {
         }
         Bytecode wrappedBytecode = wrapper.wrap(
                 new Bytecode(array),
+                exceptionClass,
                 handler,
                 methodToBeWrappedName,
                 methodToBeWrappedDescriptor

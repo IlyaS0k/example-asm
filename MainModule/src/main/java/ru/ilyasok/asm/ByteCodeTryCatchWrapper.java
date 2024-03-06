@@ -12,16 +12,20 @@ public class ByteCodeTryCatchWrapper
         implements IBytecodeTryCatchWrapper {
 
     private static final int API = ASM9;
+
     @Override
-    public <EXCEPTION_TYPE extends Throwable> Bytecode wrap(Bytecode bytecodeToBeEdit,
-                                               ITryCatchHandler<EXCEPTION_TYPE> handler,
-                                               String methodName,
-                                               String methodDescriptor) {
+    public <EXCEPTION_TYPE extends Throwable> Bytecode wrap(
+            Bytecode bytecodeToBeEdit,
+            Class<EXCEPTION_TYPE> exceptionClass,
+            ITryCatchHandler<EXCEPTION_TYPE> handler,
+            String methodName,
+            String methodDescriptor) {
         ClassReader cr = new ClassReader(bytecodeToBeEdit.asBytes());
         ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
         ClassVisitor cv = new ExceptionMonitoringClassVisitor<>(
                 API,
                 cw,
+                exceptionClass,
                 handler,
                 methodName,
                 methodDescriptor
