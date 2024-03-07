@@ -5,7 +5,6 @@ import org.objectweb.asm.*;
 import ru.ilyasok.asm.bootstrap.ExceptionMonitoringBoostrap;
 
 import java.lang.invoke.CallSite;
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 

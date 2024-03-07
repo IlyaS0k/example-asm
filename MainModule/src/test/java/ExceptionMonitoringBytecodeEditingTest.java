@@ -63,7 +63,7 @@ public class ExceptionMonitoringBytecodeEditingTest {
                 public final String className = "ru.ilyasok.Divisor";
 
                 @Nested
-                @DisplayName("checking 'divide' methods that performs integer division of two ints")
+                @DisplayName("checking 'divide' method that performs integer division of two ints")
                 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
                 class DivideMethodTest {
                     public final String methodName = "divide";
@@ -146,7 +146,7 @@ public class ExceptionMonitoringBytecodeEditingTest {
                 public final String className = "ru.ilyasok.ReplicateStringFunction";
 
                 @Nested
-                @DisplayName("checking 'apply' methods that returns string concatenated with itself n times")
+                @DisplayName("checking 'apply' method that returns string concatenated with itself n times")
                 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
                 class ApplyMethodTest {
                     public final String methodName = "apply";
