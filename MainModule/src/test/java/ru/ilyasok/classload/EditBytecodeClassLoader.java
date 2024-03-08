@@ -7,6 +7,7 @@ import ru.ilyasok.bytecode.Bytecode;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class EditBytecodeClassLoader extends ClassLoader {
@@ -25,7 +26,9 @@ public class EditBytecodeClassLoader extends ClassLoader {
         String name = className.replace(".", "/");
         byte[] array;
         try {
-            array = Files.readAllBytes(Paths.get("/home/ilyasokolov/projects/exampleASM/ModuleImpl/target/classes/" + name + ".class"));
+            Path currentWorkingDir = Paths.get("").toAbsolutePath();
+            String workDir = currentWorkingDir.normalize().toString();
+            array = Files.readAllBytes(Paths.get(workDir + "/../ModuleImpl/target/classes/" + name + ".class"));
         } catch (IOException e) {
             throw new RuntimeException();
         }
