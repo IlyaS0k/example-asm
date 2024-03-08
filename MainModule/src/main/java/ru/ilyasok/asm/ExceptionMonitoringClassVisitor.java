@@ -19,6 +19,8 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
     public ExceptionMonitoringClassVisitor(int api,
                                            ClassVisitor cv,
                                            Class<EXCEPTION_TYPE> exceptionClass,
+                                           String className,
+                                           ClassLoader classLoader,
                                            ITryCatchHandler<EXCEPTION_TYPE> handler,
                                            String wrappedMethodName,
                                            String wrappedMethodDescriptor) {
@@ -32,7 +34,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
             MethodType mt = MethodType.methodType(void.class, Throwable.class);
             MethodHandle mh = lookup.findVirtual(ITryCatchHandler.class, handleMethodName, mt);
             mhBindToHandler = mh.bindTo(handler);
-            ExceptionMonitoringBoostrap.setMH(mhBindToHandler);
+            ExceptionMonitoringBoostrap.setMH(mhBindToHandler, classLoader, className);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

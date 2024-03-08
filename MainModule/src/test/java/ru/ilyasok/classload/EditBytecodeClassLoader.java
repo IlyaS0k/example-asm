@@ -38,6 +38,8 @@ public class EditBytecodeClassLoader extends ClassLoader {
         }
         Bytecode wrappedBytecode = wrapper.wrap(
                 new Bytecode(array),
+                className,
+                this,
                 exceptionClass,
                 handler,
                 methodToBeWrappedName,
