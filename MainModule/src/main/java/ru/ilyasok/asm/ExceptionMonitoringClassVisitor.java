@@ -9,6 +9,7 @@ import java.lang.invoke.MethodType;
 
 public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
         extends ClassVisitor {
+
     private static final String handleMethodName = "handle";
     private final Class<EXCEPTION_TYPE> exceptionClass;
     private final String wrappedMethodName;
@@ -34,7 +35,9 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
             MethodType mt = MethodType.methodType(void.class, Throwable.class);
             MethodHandle mh = lookup.findVirtual(ITryCatchHandler.class, handleMethodName, mt);
             mhBindToHandler = mh.bindTo(handler);
-            ExceptionMonitoringBoostrap.setMH(mhBindToHandler, classLoader, className);
+            ExceptionMonitoringBoostrap.setMH(
+                    mhBindToHandler, classLoader, className, wrappedMethodName, wrappedMethodDescriptor
+            );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -54,7 +57,7 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                     api,
                     mv,
                     exceptionClass,
-                    handleMethodName,
+                    wrappedMethodName,
                     handleMethodDescriptor
             );
         }
