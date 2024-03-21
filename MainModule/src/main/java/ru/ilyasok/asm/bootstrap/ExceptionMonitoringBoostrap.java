@@ -28,18 +28,21 @@ public class ExceptionMonitoringBoostrap {
     public static CallSite bootstrap(
             MethodHandles.Lookup lookup,
             String name,
-            MethodType type) {
+            MethodType type,
+            String wrappedMethodName,
+            String wrappedMethodDescriptor
+    ) {
         Class<?> lookupClass = lookup.lookupClass();
         EditMethodCoords coords = new EditMethodCoords(
                 lookupClass.getClassLoader(),
                 lookupClass.getName(),
-                name,
+                wrappedMethodName,
                 null
         );
         if (mhs.containsKey(coords)) {
             return new ConstantCallSite(mhs.get(coords));
         }
-        coords.methodDescriptor = type.toMethodDescriptorString();
+        coords.methodDescriptor = wrappedMethodDescriptor;
         return new ConstantCallSite(mhs.get(coords));
     }
 

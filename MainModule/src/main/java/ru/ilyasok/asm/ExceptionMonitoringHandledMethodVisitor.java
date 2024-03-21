@@ -16,17 +16,24 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
     Class<EXCEPTION_TYPE> exceptionClass;
     private final String handleMethodName;
     private final String handleMethodDescriptor;
+    private final String wrappedMethodName;
+    private final String wrappedMethodDescriptor;
 
 
     protected ExceptionMonitoringHandledMethodVisitor(int api,
                                                       MethodVisitor mv,
                                                       Class<EXCEPTION_TYPE> exceptionClass,
                                                       String handleMethodName,
-                                                      String handleMethodDescriptor) {
+                                                      String handleMethodDescriptor,
+                                                      String wrappedMethodName,
+                                                      String wrappedMethodDescriptor
+    ) {
         super(api, mv);
         this.handleMethodName = handleMethodName;
         this.handleMethodDescriptor = handleMethodDescriptor;
         this.exceptionClass = exceptionClass;
+        this.wrappedMethodDescriptor = wrappedMethodDescriptor == null ? "" : wrappedMethodDescriptor;
+        this.wrappedMethodName = wrappedMethodName;
     }
 
     private final Label TRY_START = new Label();
@@ -60,9 +67,15 @@ public class ExceptionMonitoringHandledMethodVisitor<EXCEPTION_TYPE extends Thro
                                 CallSite.class,
                                 MethodHandles.Lookup.class,
                                 String.class,
-                                MethodType.class
+                                MethodType.class,
+                                String.class,
+                                String.class
                         ).toMethodDescriptorString()
-                )
+                ),
+                new Object[]{
+                        wrappedMethodName,
+                        wrappedMethodDescriptor
+                }
         );
         mv.visitInsn(ATHROW);
         mv.visitMaxs(maxStack, maxLocals);

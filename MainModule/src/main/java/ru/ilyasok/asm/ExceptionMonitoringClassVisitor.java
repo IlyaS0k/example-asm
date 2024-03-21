@@ -57,8 +57,10 @@ public class ExceptionMonitoringClassVisitor<EXCEPTION_TYPE extends Throwable>
                     api,
                     mv,
                     exceptionClass,
+                    handleMethodName,
+                    handleMethodDescriptor,
                     wrappedMethodName,
-                    handleMethodDescriptor
+                    wrappedMethodDescriptor
             );
         }
         return mv;
